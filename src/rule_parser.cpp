@@ -251,6 +251,16 @@ static bool ParseLeaf(const nlohmann::json& j, CondNode* out, std::vector<Diagno
             return false;
         }
     }
+    else if (j.contains("entry_point_bytes") && j["entry_point_bytes"].is_string())
+    {
+        leaf.kind = LeafKind::BytePattern;
+        leaf.where = "entry";
+        if (!ParseBytePattern(j["entry_point_bytes"].get<std::string>(), &leaf.pat_bytes, &leaf.pat_mask))
+        {
+            diags->push_back({src, "invalid entry_point_bytes", true});
+            return false;
+        }
+    }
     else if (j.contains("tls") && j["tls"].is_boolean())
     {
         leaf.kind = LeafKind::Tls;
