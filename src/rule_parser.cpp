@@ -1,6 +1,7 @@
 #include "kuara_internal.h"
 
 #include <fstream>
+#include <sstream>
 
 namespace kuara
 {
@@ -23,6 +24,32 @@ static MatchMode ParseMode(const nlohmann::json& j)
     if (m == "contains") return MatchMode::Contains;
     if (m == "prefix") return MatchMode::Prefix;
     return MatchMode::Exact;
+}
+
+static bool ParseBytePattern(const std::string& text, std::vector<uint8_t>* out_bytes, std::vector<uint8_t>* out_mask)
+{
+    out_bytes->clear();
+    out_mask->clear();
+    std::istringstream iss(text);
+    std::string tok;
+    while (iss >> tok)
+    {
+        if (tok == "?" || tok == "??")
+        {
+            out_bytes->push_back(0);
+            out_mask->push_back(0);
+            continue;
+        }
+        if (tok.size() != 2)
+            return false;
+        char* end = nullptr;
+        long v = strtol(tok.c_str(), &end, 16);
+        if (!end || *end != 0 || v < 0 || v > 255)
+            return false;
+        out_bytes->push_back((uint8_t)v);
+        out_mask->push_back(1);
+    }
+    return !out_bytes->empty();
 }
 
 static bool ParseCond(const nlohmann::json& j, CondNode* out, std::vector<Diagnostic>* diags, const std::string& src);
@@ -114,6 +141,12 @@ static bool ParseLeaf(const nlohmann::json& j, CondNode* out, std::vector<Diagno
         leaf.kind = LeafKind::Exported;
         leaf.a = j["exported_function"].get<std::string>();
     }
+    else if (j.contains("version_string") && j["version_string"].is_object())
+    {
+        leaf.kind = LeafKind::VersionString;
+        leaf.a = j["version_string"].value("key", "");
+        leaf.b = j["version_string"].value("contains", "");
+    }
     else if (j.contains("resource_type") && j["resource_type"].is_string())
     {
         leaf.kind = LeafKind::ResourceType;
@@ -186,6 +219,22 @@ static bool ParseLeaf(const nlohmann::json& j, CondNode* out, std::vector<Diagno
     {
         leaf.kind = LeafKind::Overlay;
         leaf.i0 = j["overlay"].get<bool>() ? 1 : 0;
+    }
+    else if (j.contains("overlay") && j["overlay"].is_object())
+    {
+        leaf.kind = LeafKind::Overlay;
+        leaf.i0 = 1;
+        leaf.i1 = j["overlay"].value("min_size", 1);
+    }
+    else if (j.contains("byte_pattern") && j["byte_pattern"].is_string())
+    {
+        leaf.kind = LeafKind::BytePattern;
+        leaf.where = j.value("where", "file");
+        if (!ParseBytePattern(j["byte_pattern"].get<std::string>(), &leaf.pat_bytes, &leaf.pat_mask))
+        {
+            diags->push_back({src, "invalid byte_pattern", true});
+            return false;
+        }
     }
     else if (j.contains("tls") && j["tls"].is_boolean())
     {

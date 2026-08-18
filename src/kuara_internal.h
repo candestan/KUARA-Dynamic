@@ -25,6 +25,7 @@ enum class LeafKind : uint8_t
     ImportedDll,
     ImportedFn,
     Exported,
+    VersionString,
     ResourceType,
     ResourceName,
     StringContains,
@@ -38,6 +39,7 @@ enum class LeafKind : uint8_t
     ImportDllCount,
     WxSection,
     Overlay,
+    BytePattern,
     Tls,
     TlsCallbacks,
     VirtualOnlyBeforeEntry,
@@ -56,6 +58,9 @@ struct Leaf
     int i1 = 0;
     double f0 = 0.0;
     int weight = 0;
+    std::vector<uint8_t> pat_bytes;
+    std::vector<uint8_t> pat_mask;
+    std::string where;
 };
 
 struct CondNode

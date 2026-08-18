@@ -1,6 +1,7 @@
 #include "kuara_internal.h"
 
 #include <algorithm>
+#include <string.h>
 
 namespace kuara
 {
@@ -40,6 +41,28 @@ static bool EvalLeaf(const Leaf& c, const ScanFacts& facts, Evidence* ev)
 {
     ev->condition = "unknown";
     ev->weight = c.weight;
+    auto pat_at = [&](size_t off) -> bool {
+        if (c.pat_bytes.empty() || !facts.bytes || off + c.pat_bytes.size() > facts.byte_n)
+            return false;
+        for (size_t i = 0; i < c.pat_bytes.size(); i++)
+        {
+            if (c.pat_mask[i] && facts.bytes[off + i] != c.pat_bytes[i])
+                return false;
+        }
+        return true;
+    };
+    auto pat_scan = [&](size_t from, size_t to) -> bool {
+        if (c.pat_bytes.empty() || !facts.bytes || to > facts.byte_n || to < from + c.pat_bytes.size())
+            return false;
+        size_t last = to - c.pat_bytes.size();
+        for (size_t i = from; i <= last; i++)
+        {
+            if (pat_at(i))
+                return true;
+        }
+        return false;
+    };
+
     switch (c.kind)
     {
     case LeafKind::SectionName:
@@ -86,6 +109,14 @@ static bool EvalLeaf(const Leaf& c, const ScanFacts& facts, Evidence* ev)
         for (const std::string& fn : facts.exports)
             if (SMatch(c.mode, fn, c.a)) { ev->condition = "exported_function"; ev->detail = fn; return true; }
         return false;
+    case LeafKind::VersionString:
+        for (const std::string& kv : facts.version_kv)
+        {
+            const bool key_ok = c.a.empty() || IContains(kv, c.a);
+            const bool val_ok = c.b.empty() || IContains(kv, c.b);
+            if (key_ok && val_ok) { ev->condition = "version_string"; ev->detail = kv; return true; }
+        }
+        return false;
     case LeafKind::ResourceType:
         for (const std::string& t : facts.resource_types)
             if (SMatch(c.mode, t, c.a)) { ev->condition = "resource_type"; ev->detail = t; return true; }
@@ -126,7 +157,23 @@ static bool EvalLeaf(const Leaf& c, const ScanFacts& facts, Evidence* ev)
         ev->condition = "writable_executable_section";
         return wx == (c.i0 != 0);
     }
-    case LeafKind::Overlay: ev->condition = "overlay"; return facts.overlay == (c.i0 != 0);
+    case LeafKind::Overlay:
+        ev->condition = "overlay";
+        if (c.i0 == 0)
+            return !facts.overlay;
+        if (!facts.overlay)
+            return false;
+        return c.i1 <= 0 || (int)facts.overlay_size >= c.i1;
+    case LeafKind::BytePattern:
+    {
+        ev->condition = "byte_pattern";
+        const std::string where = c.where.empty() ? "file" : c.where;
+        if (where == "entry")
+            return pat_at((size_t)facts.entry_off);
+        if (where == "overlay")
+            return facts.overlay && pat_scan((size_t)facts.overlay_off, (size_t)(facts.overlay_off + facts.overlay_size));
+        return pat_scan(0, facts.byte_n);
+    }
     case LeafKind::Tls: ev->condition = "tls"; return facts.tls == (c.i0 != 0);
     case LeafKind::TlsCallbacks: ev->condition = "tls_callbacks"; return facts.tls_callbacks == (c.i0 != 0);
     case LeafKind::VirtualOnlyBeforeEntry:

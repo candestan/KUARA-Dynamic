@@ -58,11 +58,14 @@ struct ScanFacts
     std::vector<std::string> exports;
     std::vector<std::string> resource_types;
     std::vector<std::string> resource_names;
+    std::vector<std::string> version_kv;
     std::vector<std::string> strings;
     std::vector<std::string> clr_streams;
     std::vector<std::string> clr_asm_refs;
     std::vector<std::string> clr_types;
     std::vector<std::string> clr_namespaces;
+    const uint8_t* bytes = nullptr;
+    size_t byte_n = 0;
 };
 
 struct Evidence
