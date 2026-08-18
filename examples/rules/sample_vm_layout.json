@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "id": "protector.generic.entry_layout",
+  "name": "Generic Entry Layout Protector",
+  "category": "protector",
+  "product_key": "generic.protector.layout",
+  "confidence": "high",
+  "conditions": {
+    "all": [
+      { "virtual_only_before_entry": { "min": 2 }, "weight": 30 },
+      { "entry_section_chars": { "mask": 1610612736 }, "weight": 20 },
+      { "entry_section_entropy": { "min": 7.0 }, "weight": 20 }
+    ]
+  }
+}
+
