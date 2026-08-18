@@ -2,6 +2,11 @@
 
 namespace kuara
 {
+const char* EngineId()
+{
+    return "com.candestan.kuara";
+}
+
 bool Explain(const CompiledRuleSet& compiled, const ScanFacts& facts, const std::string& rule_id, std::vector<Diagnostic>* out_trace)
 {
     out_trace->clear();

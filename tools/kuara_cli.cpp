@@ -61,7 +61,7 @@ int main(int argc, char** argv)
 {
     if (argc < 3)
     {
-        std::cout << "KUARA CLI\n";
+        std::cout << "KUARA CLI (" << kuara::EngineId() << ")\n";
         std::cout << "usage:\n";
         std::cout << "  kuara validate <rules.json>\n";
         std::cout << "  kuara scan <rules.json> <facts.json>\n";

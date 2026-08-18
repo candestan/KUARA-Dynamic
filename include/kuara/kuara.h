@@ -53,6 +53,8 @@ struct ScanFacts
     int import_dll_n = 0;
 
     std::vector<SectionFact> sections;
+    std::vector<uint16_t> rich_prod;
+    std::vector<uint16_t> rich_build;
     std::vector<std::string> import_dlls;
     std::vector<std::string> import_fns;
     std::vector<std::string> exports;
@@ -106,5 +108,6 @@ bool ValidateRuleSet(const RuleSet& rules, std::vector<Diagnostic>* out_diags);
 bool CompileRuleSet(const RuleSet& rules, CompiledRuleSet* out_compiled, std::vector<Diagnostic>* out_diags);
 bool Scan(const CompiledRuleSet& compiled, const ScanFacts& facts, std::vector<Match>* out_matches);
 bool Explain(const CompiledRuleSet& compiled, const ScanFacts& facts, const std::string& rule_id, std::vector<Diagnostic>* out_trace);
+const char* EngineId();
 } // namespace kuara
 

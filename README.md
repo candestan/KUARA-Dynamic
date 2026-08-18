@@ -1,6 +1,6 @@
 # KUARA Dynamic Engine
 
-Stable engine id: `com.candestan.kuara.dynamic`
+Stable engine id: `com.candestan.kuara`
 
 KUARA is an independent, offline, first-party rule engine for static detection and evidence collection.
 It is not a wrapper around YARA and has no YARA runtime dependency.

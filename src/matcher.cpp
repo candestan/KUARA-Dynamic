@@ -148,6 +148,19 @@ static bool EvalLeaf(const Leaf& c, const ScanFacts& facts, Evidence* ev)
         return false;
     case LeafKind::LinkerMajor: ev->condition = "linker_major"; return facts.linker_major == c.i0;
     case LeafKind::LinkerMinor: ev->condition = "linker_minor"; return facts.linker_minor == c.i0;
+    case LeafKind::RichPresent:
+        ev->condition = "rich_present";
+        return (!facts.rich_prod.empty()) == (c.i0 != 0);
+    case LeafKind::RichProd:
+        ev->condition = "rich_prod";
+        for (uint16_t p : facts.rich_prod)
+            if (p == (uint16_t)c.i0) return true;
+        return false;
+    case LeafKind::RichBuild:
+        ev->condition = "rich_build";
+        for (uint16_t b : facts.rich_build)
+            if (b == (uint16_t)c.i0) return true;
+        return false;
     case LeafKind::ImportDllCount: ev->condition = "import_dll_count"; return facts.import_dll_n >= c.i0 && facts.import_dll_n <= c.i1;
     case LeafKind::WxSection:
     {

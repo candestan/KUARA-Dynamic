@@ -197,6 +197,21 @@ static bool ParseLeaf(const nlohmann::json& j, CondNode* out, std::vector<Diagno
         leaf.kind = LeafKind::LinkerMinor;
         leaf.i0 = j["linker_minor"].get<int>();
     }
+    else if (j.contains("rich_present") && j["rich_present"].is_boolean())
+    {
+        leaf.kind = LeafKind::RichPresent;
+        leaf.i0 = j["rich_present"].get<bool>() ? 1 : 0;
+    }
+    else if (j.contains("rich_prod"))
+    {
+        leaf.kind = LeafKind::RichProd;
+        leaf.i0 = j["rich_prod"].get<int>();
+    }
+    else if (j.contains("rich_build"))
+    {
+        leaf.kind = LeafKind::RichBuild;
+        leaf.i0 = j["rich_build"].get<int>();
+    }
     else if (j.contains("import_dll_count"))
     {
         leaf.kind = LeafKind::ImportDllCount;
