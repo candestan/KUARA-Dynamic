@@ -109,5 +109,8 @@ bool CompileRuleSet(const RuleSet& rules, CompiledRuleSet* out_compiled, std::ve
 bool Scan(const CompiledRuleSet& compiled, const ScanFacts& facts, std::vector<Match>* out_matches);
 bool Explain(const CompiledRuleSet& compiled, const ScanFacts& facts, const std::string& rule_id, std::vector<Diagnostic>* out_trace);
 const char* EngineId();
+const char* EngineVersion();
+const char* EngineAuthor();
+const char* BrandImageUrl();
 } // namespace kuara
 
